@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style type="text/css">html, body
+{
+    margin: 0;
+    padding: 0px;
+    background-color:#111;
+}
+* {
+    color:#888;
+    background-color:#111;
+}
+.controls {
+    border: solid 1px #888;
+    margin: 8px;
+}
+</style></head>
+<body>
+    <div class="controls">
+        <div>
+            <input type="date" id="date" />
+            <input type="text" id="key" placeholder="key/ID for item" />
+            <select id="outcome">
+                <option value="win">Win</option>
+                <option value="tie">Tie</option>
+                <option value="loss">Loss <!-- :.:; --> </option>
+            </select>
+            <button id="add-entry-button">Add</button>
+        </div>
+        <div>
+            <button id="today-button">Today</button>
+            <select id="entry-dropdown"></select>
+            <button id="remove-entry-button">Remove</button>
+        </div>
+        <output id="entry-dropdown-output"></output>
+    </div>
+    <output id="table-output"></output>
+</body>
+<script>
+
+// TODO Put message inline into page
+const announceError = alert;
+
+const loadDatesIndex = () => {
+    let index = window.localStorage.getItem(INDEX_KEY);
+    if (typeof index === "string") {
+        index = JSON.parse(index)
+    }
+    if (typeof index !== "number") {
+        index = 0
+        window.localStorage.setItem(INDEX_KEY, index)
+    }
+
+    return index
+}
+
+const startupDate = new Date();
+
+const dateToYYYYMMDD = (date) => {
+    return `${date.getFullYear()}-${("0" + (date.getMonth() + 1)).slice(-2)}-${("0" + date.getDate()).slice(-2)}`
+}
+
+const yyyymmddToTime = (yyyymmdd) => {
+    let [yyyy, mm, dd] = yyyymmdd.split("-");
+    if (
+        yyyy === undefined
+        || mm === undefined
+        || dd === undefined
+    ) {
+        //TODO return more specific message?
+        return Number.NaN
+    }
+
+    yyyy = parseInt(yyyy, 10)
+    mm = parseInt(mm, 10)
+    dd = parseInt(dd, 10)
+
+    if (
+        isNaN(yyyy)
+        || isNaN(mm)
+        || isNaN(dd)
+    ) {
+        //TODO return more specific message?
+        return Number.NaN
+    }
+
+    const date = new Date(0);
+    // new Date(yyyy, mm - 1, dd) would result in the wrong year because
+    // of two digit gat thinking.
+    date.setFullYear(yyyy)
+    date.setMonth(mm - 1)
+    date.setDate(dd)
+
+    return date.getTime()
+}
+
+const dateInput = document.getElementById("date");
+dateInput.value = dateToYYYYMMDD(startupDate);
+
+const INDEX_KEY = "entry-index";
+
+const ENTRY_KEYS = ["entry-index-0", "entry-index-1", "entry-index-2", "entry-index-3", "entry-index-4"];
+
+const loadEntriesOrDefault = () => {
+    const index = loadDatesIndex();
+
+    const parsed = JSON.parse(window.localStorage.getItem(ENTRY_KEYS[index]))
+
+    if (parsed) {
+        return parsed
+    } else {
+        return [
+            { key: "Truman", outcome: "win", date: yyyymmddToTime("1948-11-03") },
+        ]
+    }
+};
+
+const entries = loadEntriesOrDefault();
+
+const outcomeDropdown = document.getElementById("outcome");
+const keyInput = document.getElementById("key");
+const entryDropdown = document.getElementById("entry-dropdown");
+const entryDropdownOutput = document.getElementById("entry-dropdown-output");
+
+const tableOutput = document.getElementById("table-output");
+
+const sync = () => {
+    //
+    // Update dropdown HTML
+    //
+    entryDropdown.innerHTML = "";
+
+    const blankOption = document.createElement("option");
+    blankOption.value = " ";
+    entryDropdown.appendChild(blankOption);
+
+    for (let i = 0; i < entries.length; i += 1) {
+        let {key, date, outcome} = entries[i];
+        const option = document.createElement("option");
+        const label = key + " " + outcome + " on " + dateToYYYYMMDD(new Date(date));
+        option.innerText = label;
+        entryDropdown.appendChild(option);
+    }
+    entryDropdownOutput.textContent = "";
+
+    //
+    // Update table HTML
+    //
+
+    tableOutput.innerHTML = "";
+    for (let i = 0; i < entries.length; i += 1) {
+        // TODO HTML table, including totals
+        let {key, date, outcome} = entries[i];
+        const p = document.createElement("p");
+        p.innerText = key + " " + outcome + " on " + dateToYYYYMMDD(new Date(date));
+        tableOutput.appendChild(p);
+        entries[i]
+    }
+    
+
+    //
+    // Save to localStorage
+    //
+
+    let index = loadDatesIndex()
+
+    index += 1;
+    index %= ENTRY_KEYS.length;
+
+    window.localStorage.setItem(ENTRY_KEYS[index], JSON.stringify(entries))
+    window.localStorage.setItem(INDEX_KEY, index);
+}
+sync();
+
+// -1 for the blank at the start
+const getSelectedIndex = () => entryDropdown.selectedIndex - 1;
+
+entryDropdown.onchange = () => {
+    const i = getSelectedIndex();
+    if (i < 0) { return }
+    let {date, outcome, key} = entries[i];
+    entryDropdownOutput.textContent = key + " " + outcome + " on " + dateToYYYYMMDD(new Date(date))
+    
+    keyInput.value = key;
+};
+
+document.getElementById("add-entry-button").onclick = () => {
+    let date = yyyymmddToTime(dateInput.value)
+    if (isNaN(date)) {
+        announceError("Date was invalid: \"" + dateInput.value + "\"")
+        return
+    }
+
+    // TODO? Maintain sorted order here?
+    entries.push({key: keyInput.value || "-", date, outcome: outcome.value });
+
+    sync()
+};
+
+document.getElementById("today-button").onclick = () => {
+    dateInput.value = dateToYYYYMMDD(new Date());
+
+    sync()
+};
+
+document.getElementById("remove-entry-button").onclick = () => {
+    const i = getSelectedIndex();
+    if (i < 0) {
+        announceError("Nothing selected to remove")
+        return
+    }
+
+    entries.splice(i, 1)
+
+    sync()
+};
+
+</script>
+</html>
