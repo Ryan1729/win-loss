@@ -14,6 +14,10 @@
     border: solid 1px #888;
     margin: 8px;
 }
+th, td {
+    border: solid 1px #888;
+    padding: 1ex 1em;
+}
 </style></head>
 <body>
     <div class="controls">
@@ -148,15 +152,130 @@ const sync = () => {
     //
 
     tableOutput.innerHTML = "";
+
+    const totalTable = document.createElement("table");
+
+    const headerRow = document.createElement("tr");
+
+    const keyH = document.createElement("th");
+    keyH.textContent = "key";
+    headerRow.appendChild(keyH);
+
+    const winH = document.createElement("th");
+    winH.textContent = "win";
+    headerRow.appendChild(winH);
+
+    const lossH = document.createElement("th");
+    lossH.textContent = "loss";
+    headerRow.appendChild(lossH);
+
+    const tieH = document.createElement("th");
+    tieH.textContent = "tie";
+    headerRow.appendChild(tieH);
+
+    totalTable.appendChild(headerRow);
+
+    const keys = {}
+    const winTotals = {}
+    const lossTotals = {}
+    const tieTotals = {}
+
     for (let i = 0; i < entries.length; i += 1) {
-        // TODO HTML table, including totals
-        let {key, date, outcome} = entries[i];
-        const p = document.createElement("p");
-        p.innerText = key + " " + outcome + " on " + dateToYYYYMMDD(new Date(date));
-        tableOutput.appendChild(p);
-        entries[i]
+        let {key, outcome} = entries[i];
+
+        if (!keys[key]) {
+            keys[key] = 1
+        }
+
+        switch (outcome) {
+            default:
+                console.error("unexpected outcome: " + outcome)
+            break
+            case "win":
+                if (!winTotals[key]) {
+                    winTotals[key] = 0
+                }
+                winTotals[key] += 1;
+            break
+            case "loss":
+                if (!lossTotals[key]) {
+                    lossTotals[key] = 0
+                }
+                lossTotals[key] += 1;
+            break
+            case "tie":
+                if (!tieTotals[key]) {
+                    tieTotals[key] = 0
+                }
+                tieTotals[key] += 1;
+            break
+        }
     }
-    
+
+    for (key of Object.keys(keys)) {
+        const dataRow = document.createElement("tr");
+
+        const keyD = document.createElement("td");
+        keyD.textContent = key;
+        dataRow.appendChild(keyD);
+
+        const winD = document.createElement("td");
+        winD.textContent = winTotals[key] || 0;
+        dataRow.appendChild(winD);
+
+        const lossD = document.createElement("td");
+        lossD.textContent = lossTotals[key] || 0;
+        dataRow.appendChild(lossD);
+
+        const tieD = document.createElement("td");
+        tieD.textContent = tieTotals[key] || 0;
+        dataRow.appendChild(tieD);
+
+        totalTable.appendChild(dataRow);
+    }
+
+    tableOutput.appendChild(totalTable);
+
+    (() => {
+        const entryTable = document.createElement("table");
+
+        const headerRow = document.createElement("tr");
+
+        const keyH = document.createElement("th");
+        keyH.textContent = "key";
+        headerRow.appendChild(keyH);
+
+        const outcomeH = document.createElement("th");
+        outcomeH.textContent = "outcome";
+        headerRow.appendChild(outcomeH);
+
+        const dateH = document.createElement("th");
+        dateH.textContent = "date";
+        headerRow.appendChild(dateH);
+
+        entryTable.appendChild(headerRow);
+
+        for (let i = 0; i < entries.length; i += 1) {
+            let {key, outcome, date} = entries[i];
+            const dataRow = document.createElement("tr");
+
+            const keyD = document.createElement("td");
+            keyD.textContent = key;
+            dataRow.appendChild(keyD);
+
+            const outcomeD = document.createElement("td");
+            outcomeD.textContent = outcome;
+            dataRow.appendChild(outcomeD);
+
+            const dateD = document.createElement("td");
+            dateD.textContent = dateToYYYYMMDD(new Date(date));
+            dataRow.appendChild(dateD);
+
+            entryTable.appendChild(dataRow);
+        }
+
+        tableOutput.appendChild(entryTable);
+    })()
 
     //
     // Save to localStorage
@@ -180,7 +299,7 @@ entryDropdown.onchange = () => {
     if (i < 0) { return }
     let {date, outcome, key} = entries[i];
     entryDropdownOutput.textContent = key + " " + outcome + " on " + dateToYYYYMMDD(new Date(date))
-    
+
     keyInput.value = key;
 };
 
