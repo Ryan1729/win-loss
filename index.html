@@ -128,6 +128,8 @@ const entryDropdownOutput = document.getElementById("entry-dropdown-output");
 
 const tableOutput = document.getElementById("table-output");
 
+const formatPercent = (n01) => (n01*100).toFixed(3);
+
 const sync = () => {
     //
     // Update dropdown HTML
@@ -172,6 +174,18 @@ const sync = () => {
     const tieH = document.createElement("th");
     tieH.textContent = "tie";
     headerRow.appendChild(tieH);
+
+    const winPercentH = document.createElement("th");
+    winPercentH.textContent = "win %";
+    headerRow.appendChild(winPercentH);
+
+    const lossPercentH = document.createElement("th");
+    lossPercentH.textContent = "loss %";
+    headerRow.appendChild(lossPercentH);
+
+    const tiePercentH = document.createElement("th");
+    tiePercentH.textContent = "tie %";
+    headerRow.appendChild(tiePercentH);
 
     totalTable.appendChild(headerRow);
 
@@ -219,17 +233,35 @@ const sync = () => {
         keyD.textContent = key;
         dataRow.appendChild(keyD);
 
+        const winTotal = winTotals[key] || 0;
+        const lossTotal = lossTotals[key] || 0;
+        const tieTotal = tieTotals[key] || 0;
+
+        const total = winTotal + lossTotal + tieTotal;
+
         const winD = document.createElement("td");
-        winD.textContent = winTotals[key] || 0;
+        winD.textContent = winTotal;
         dataRow.appendChild(winD);
 
         const lossD = document.createElement("td");
-        lossD.textContent = lossTotals[key] || 0;
+        lossD.textContent = lossTotal;
         dataRow.appendChild(lossD);
 
         const tieD = document.createElement("td");
-        tieD.textContent = tieTotals[key] || 0;
+        tieD.textContent = tieTotal;
         dataRow.appendChild(tieD);
+
+        const winPercentD = document.createElement("td");
+        winPercentD.textContent = formatPercent(winTotal / total);
+        dataRow.appendChild(winPercentD);
+
+        const lossPercentD = document.createElement("td");
+        lossPercentD.textContent = formatPercent(lossTotal / total);
+        dataRow.appendChild(lossPercentD);
+
+        const tiePercentD = document.createElement("td");
+        tiePercentD.textContent = formatPercent(tieTotal / total);
+        dataRow.appendChild(tiePercentD);
 
         totalTable.appendChild(dataRow);
     }
