@@ -130,6 +130,8 @@ const tableOutput = document.getElementById("table-output");
 
 const formatPercent = (n01) => (n01*100).toFixed(3);
 
+let includeTiesBool = false;
+
 const sync = () => {
     //
     // Update dropdown HTML
@@ -171,9 +173,11 @@ const sync = () => {
     lossH.textContent = "loss";
     headerRow.appendChild(lossH);
 
-    const tieH = document.createElement("th");
-    tieH.textContent = "tie";
-    headerRow.appendChild(tieH);
+    if (includeTiesBool) {
+        const tieH = document.createElement("th");
+        tieH.textContent = "tie";
+        headerRow.appendChild(tieH);
+    }
 
     const winPercentH = document.createElement("th");
     winPercentH.textContent = "win %";
@@ -183,9 +187,11 @@ const sync = () => {
     lossPercentH.textContent = "loss %";
     headerRow.appendChild(lossPercentH);
 
-    const tiePercentH = document.createElement("th");
-    tiePercentH.textContent = "tie %";
-    headerRow.appendChild(tiePercentH);
+    if (includeTiesBool) {
+        const tiePercentH = document.createElement("th");
+        tiePercentH.textContent = "tie %";
+        headerRow.appendChild(tiePercentH);
+    }
 
     totalTable.appendChild(headerRow);
 
@@ -247,9 +253,11 @@ const sync = () => {
         lossD.textContent = lossTotal;
         dataRow.appendChild(lossD);
 
-        const tieD = document.createElement("td");
-        tieD.textContent = tieTotal;
-        dataRow.appendChild(tieD);
+        if (includeTiesBool) {
+            const tieD = document.createElement("td");
+            tieD.textContent = tieTotal;
+            dataRow.appendChild(tieD);
+        }
 
         const winPercentD = document.createElement("td");
         winPercentD.textContent = formatPercent(winTotal / total);
@@ -259,14 +267,41 @@ const sync = () => {
         lossPercentD.textContent = formatPercent(lossTotal / total);
         dataRow.appendChild(lossPercentD);
 
-        const tiePercentD = document.createElement("td");
-        tiePercentD.textContent = formatPercent(tieTotal / total);
-        dataRow.appendChild(tiePercentD);
+        if (includeTiesBool) {
+            const tiePercentD = document.createElement("td");
+            tiePercentD.textContent = formatPercent(tieTotal / total);
+            dataRow.appendChild(tiePercentD);
+        }
+        
 
         totalTable.appendChild(dataRow);
     }
 
     tableOutput.appendChild(totalTable);
+    
+    const tableControls = document.createElement("div");
+    
+    const includeTiesID = "include-ties";
+    
+    const includeTiesCheckbox = document.createElement("input");
+    includeTiesCheckbox.type = "checkbox";
+    includeTiesCheckbox.id = includeTiesID;
+    includeTiesCheckbox.checked = includeTiesBool;
+
+    includeTiesCheckbox.addEventListener("click", () => {
+        includeTiesBool = !includeTiesBool;
+        sync();
+    });
+
+    tableControls.appendChild(includeTiesCheckbox);
+    
+    const includeTiesLabel = document.createElement("label");
+    includeTiesLabel.htmlFor = includeTiesID;
+    includeTiesLabel.textContent = "Include Ties";
+
+    tableControls.appendChild(includeTiesLabel);
+    
+    tableOutput.appendChild(tableControls);
 
     (() => {
         const entryTable = document.createElement("table");
