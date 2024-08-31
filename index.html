@@ -243,7 +243,7 @@ const sync = () => {
         const lossTotal = lossTotals[key] || 0;
         const tieTotal = tieTotals[key] || 0;
 
-        const total = winTotal + lossTotal + tieTotal;
+        const total = winTotal + lossTotal + (includeTiesBool ? tieTotal : 0);
 
         const winD = document.createElement("td");
         winD.textContent = winTotal;
