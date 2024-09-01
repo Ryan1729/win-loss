@@ -130,6 +130,13 @@ const tableOutput = document.getElementById("table-output");
 
 const formatPercent = (n01) => (n01*100).toFixed(3);
 
+const SORT_MODE_HIGHEST_WIN_RATIO = 0;
+const SORT_MODE_MOST_WINS = 1;
+const SORT_MODE_ALPHABETICAL = 2;
+
+const SORT_MODE_COUNT = 3;
+
+let totalsSortMode = SORT_MODE_HIGHEST_WIN_RATIO;
 let includeTiesBool = false;
 
 const sync = () => {
@@ -232,18 +239,69 @@ const sync = () => {
         }
     }
 
-    for (key of Object.keys(keys)) {
+    const getTotals = (key) => {
+        const winTotal = winTotals[key] || 0;
+        const lossTotal = lossTotals[key] || 0;
+        const tieTotal = tieTotals[key] || 0;
+
+        return {
+            winTotal,
+            lossTotal,
+            tieTotal,
+            total: winTotal + lossTotal + (includeTiesBool ? tieTotal : 0),
+        }
+    };
+
+    const keyArray = Object.keys(keys)
+
+    switch (totalsSortMode) {
+        default:
+            console.error("unhandled sort mode: " + i)
+        break
+        case SORT_MODE_HIGHEST_WIN_RATIO:
+            keyArray.sort((a, b) => {
+                const {winTotal: aWinTotal, total: aTotal} = getTotals(a);
+                const aRatio = aWinTotal / aTotal;
+
+                const {winTotal: bWinTotal, total: bTotal} = getTotals(b);
+                const bRatio = bWinTotal / bTotal;
+
+                if (aRatio > bRatio) {
+                    return -1
+                } else if (aRatio < bRatio) {
+                    return 1
+                } else {
+                    return 0
+                }
+            });
+        break
+        case SORT_MODE_MOST_WINS:
+            keyArray.sort((a, b) => {
+                const {winTotal: aWinTotal} = getTotals(a);
+                const {winTotal: bWinTotal} = getTotals(b);
+
+                if (aWinTotal > bWinTotal) {
+                    return -1
+                } else if (aWinTotal < bWinTotal) {
+                    return 1
+                } else {
+                    return 0
+                }
+            });
+        break
+        case SORT_MODE_ALPHABETICAL:
+            keyArray.sort();
+        break
+    }
+
+    for (key of keyArray) {
         const dataRow = document.createElement("tr");
 
         const keyD = document.createElement("td");
         keyD.textContent = key;
         dataRow.appendChild(keyD);
 
-        const winTotal = winTotals[key] || 0;
-        const lossTotal = lossTotals[key] || 0;
-        const tieTotal = tieTotals[key] || 0;
-
-        const total = winTotal + lossTotal + (includeTiesBool ? tieTotal : 0);
+        const {winTotal, lossTotal, tieTotal, total} = getTotals(key);
 
         const winD = document.createElement("td");
         winD.textContent = winTotal;
@@ -272,17 +330,46 @@ const sync = () => {
             tiePercentD.textContent = formatPercent(tieTotal / total);
             dataRow.appendChild(tiePercentD);
         }
-        
 
         totalTable.appendChild(dataRow);
     }
 
     tableOutput.appendChild(totalTable);
-    
+
     const tableControls = document.createElement("div");
-    
+
+    const sortModeDropdown = document.createElement("select");
+
+    for (let i = 0; i < SORT_MODE_COUNT; i += 1) {
+        const option = document.createElement("option");
+        switch (i) {
+            default:
+                console.error("unhandled sort mode: " + i)
+                continue
+            case SORT_MODE_HIGHEST_WIN_RATIO:
+                option.textContent = "Win ratio";
+            break
+            case SORT_MODE_MOST_WINS:
+                option.textContent = "Most Wins";
+            break
+            case SORT_MODE_ALPHABETICAL:
+                option.textContent = "Alphabetical";
+            break
+        }
+
+        sortModeDropdown.appendChild(option);
+    }
+    sortModeDropdown.selectedIndex = totalsSortMode;
+
+    sortModeDropdown.addEventListener("change", () => {
+        totalsSortMode = sortModeDropdown.selectedIndex;
+        sync()
+    });
+
+    tableControls.appendChild(sortModeDropdown);
+
     const includeTiesID = "include-ties";
-    
+
     const includeTiesCheckbox = document.createElement("input");
     includeTiesCheckbox.type = "checkbox";
     includeTiesCheckbox.id = includeTiesID;
@@ -294,13 +381,13 @@ const sync = () => {
     });
 
     tableControls.appendChild(includeTiesCheckbox);
-    
+
     const includeTiesLabel = document.createElement("label");
     includeTiesLabel.htmlFor = includeTiesID;
     includeTiesLabel.textContent = "Include Ties";
 
     tableControls.appendChild(includeTiesLabel);
-    
+
     tableOutput.appendChild(tableControls);
 
     (() => {
