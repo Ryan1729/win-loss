@@ -33,6 +33,8 @@ th, td {
         </div>
         <div>
             <button id="today-button">Today</button>
+            <input type="checkbox" id="lock-to-today" />
+            <label for="lock-to-today">Lock to Today</label>
             <select id="entry-dropdown"></select>
             <button id="remove-entry-button">Remove</button>
         </div>
@@ -125,6 +127,25 @@ const outcomeDropdown = document.getElementById("outcome");
 const keyInput = document.getElementById("key");
 const entryDropdown = document.getElementById("entry-dropdown");
 const entryDropdownOutput = document.getElementById("entry-dropdown-output");
+
+const todayButton = document.getElementById("today-button");
+todayButton.onclick = () => {
+    dateInput.value = dateToYYYYMMDD(new Date());
+
+    sync()
+};
+
+const lockToToday = document.getElementById("lock-to-today");
+lockToToday.addEventListener("click", () => {
+    if (lockToToday.checked) {
+        todayButton.onclick();
+        dateInput.disabled = true;
+    } else {
+        dateInput.disabled = false;
+    }
+});
+
+
 
 const tableOutput = document.getElementById("table-output");
 
@@ -466,12 +487,6 @@ document.getElementById("add-entry-button").onclick = () => {
 
     // TODO? Maintain sorted order here?
     entries.push({key: keyInput.value || "-", date, outcome: outcome.value });
-
-    sync()
-};
-
-document.getElementById("today-button").onclick = () => {
-    dateInput.value = dateToYYYYMMDD(new Date());
 
     sync()
 };
