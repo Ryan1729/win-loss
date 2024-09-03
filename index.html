@@ -155,6 +155,8 @@ const tableOutput = document.getElementById("table-output");
 
 const formatPercent = (n01) => (n01*100).toFixed(3);
 
+const divOrZero = (dividend, divisor) => (divisor == 0 ? divisor : (dividend / divisor));
+
 const SORT_MODE_HIGHEST_WIN_RATIO = 0;
 const SORT_MODE_MOST_WINS = 1;
 const SORT_MODE_ALPHABETICAL = 2;
@@ -286,10 +288,10 @@ const sync = () => {
         case SORT_MODE_HIGHEST_WIN_RATIO:
             keyArray.sort((a, b) => {
                 const {winTotal: aWinTotal, total: aTotal} = getTotals(a);
-                const aRatio = aWinTotal / aTotal;
+                const aRatio = divOrZero(aWinTotal, aTotal);
 
                 const {winTotal: bWinTotal, total: bTotal} = getTotals(b);
-                const bRatio = bWinTotal / bTotal;
+                const bRatio = divOrZero(bWinTotal, aTotal);
 
                 if (aRatio > bRatio) {
                     return -1
@@ -343,16 +345,16 @@ const sync = () => {
         }
 
         const winPercentD = document.createElement("td");
-        winPercentD.textContent = formatPercent(winTotal / total);
+        winPercentD.textContent = formatPercent(divOrZero(winTotal, total));
         dataRow.appendChild(winPercentD);
 
         const lossPercentD = document.createElement("td");
-        lossPercentD.textContent = formatPercent(lossTotal / total);
+        lossPercentD.textContent = formatPercent(divOrZero(lossTotal, total));
         dataRow.appendChild(lossPercentD);
 
         if (includeTiesBool) {
             const tiePercentD = document.createElement("td");
-            tiePercentD.textContent = formatPercent(tieTotal / total);
+            tiePercentD.textContent = formatPercent(divOrZero(tieTotal, total));
             dataRow.appendChild(tiePercentD);
         }
 
