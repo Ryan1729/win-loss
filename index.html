@@ -128,9 +128,13 @@ const keyInput = document.getElementById("key");
 const entryDropdown = document.getElementById("entry-dropdown");
 const entryDropdownOutput = document.getElementById("entry-dropdown-output");
 
+const setToToday = () => {
+    dateInput.value = dateToYYYYMMDD(new Date());
+};
+
 const todayButton = document.getElementById("today-button");
 todayButton.onclick = () => {
-    dateInput.value = dateToYYYYMMDD(new Date());
+    setToToday();
 
     sync()
 };
@@ -138,7 +142,7 @@ todayButton.onclick = () => {
 const lockToToday = document.getElementById("lock-to-today");
 lockToToday.addEventListener("click", () => {
     if (lockToToday.checked) {
-        todayButton.onclick();
+        setToToday();
         dateInput.disabled = true;
     } else {
         dateInput.disabled = false;
@@ -479,6 +483,10 @@ entryDropdown.onchange = () => {
 };
 
 document.getElementById("add-entry-button").onclick = () => {
+    if (lockToToday.checked) {
+        setToToday();
+    }
+
     let date = yyyymmddToTime(dateInput.value)
     if (isNaN(date)) {
         announceError("Date was invalid: \"" + dateInput.value + "\"")
