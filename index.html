@@ -10,6 +10,9 @@
     color:#888;
     background-color:#111;
 }
+button:disabled{
+  color:#444;
+}
 .controls {
     border: solid 1px #888;
     margin: 8px;
@@ -485,7 +488,9 @@ entryDropdown.onchange = () => {
     keyInput.value = key;
 };
 
-document.getElementById("add-entry-button").onclick = () => {
+const addEntryButton = document.getElementById("add-entry-button");
+
+const addEntry = () => {
     if (lockToToday.checked) {
         setToToday();
     }
@@ -500,6 +505,14 @@ document.getElementById("add-entry-button").onclick = () => {
     entries.push({key: keyInput.value || "-", date, outcome: outcome.value });
 
     sync()
+
+    addEntryButton.disabled = false;
+};
+
+addEntryButton.onclick = () => {
+    addEntryButton.disabled = true;
+
+    setTimeout(addEntry, 100)
 };
 
 document.getElementById("remove-entry-button").onclick = () => {
