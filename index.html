@@ -92,10 +92,8 @@ const yyyymmddToTime = (yyyymmdd) => {
 
     const date = new Date(0);
     // new Date(yyyy, mm - 1, dd) would result in the wrong year because
-    // of two digit gat thinking.
-    date.setFullYear(yyyy)
-    date.setMonth(mm - 1)
-    date.setDate(dd)
+    // of 1900's two digit thinking.
+    date.setFullYear(yyyy, mm - 1, dd)
 
     return date.getTime()
 }
