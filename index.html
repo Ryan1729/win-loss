@@ -279,6 +279,9 @@ const sync = () => {
 
     const keyArray = Object.keys(keys)
 
+    // Arrange tied things alphabetically
+    keyArray.sort();
+
     switch (totalsSortMode) {
         default:
             console.error("unhandled sort mode: " + i)
@@ -289,7 +292,7 @@ const sync = () => {
                 const aRatio = divOrZero(aWinTotal, aTotal);
 
                 const {winTotal: bWinTotal, total: bTotal} = getTotals(b);
-                const bRatio = divOrZero(bWinTotal, aTotal);
+                const bRatio = divOrZero(bWinTotal, bTotal);
 
                 if (aRatio > bRatio) {
                     return -1
@@ -315,7 +318,7 @@ const sync = () => {
             });
         break
         case SORT_MODE_ALPHABETICAL:
-            keyArray.sort();
+            // already in this order
         break
     }
 
