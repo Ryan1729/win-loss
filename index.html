@@ -42,6 +42,11 @@ th, td {
             <button id="remove-entry-button">Remove</button>
         </div>
         <output id="entry-dropdown-output"></output>
+        <div>
+            <select id="key-dropdown"></select>
+            <input type="text" id="rename-input" />
+            <button id="rename-button">Rename</button>
+        </div>
     </div>
     <output id="table-output"></output>
 </body>
@@ -150,7 +155,14 @@ lockToToday.addEventListener("click", () => {
     }
 });
 
-
+const keyDropdown = document.getElementById("key-dropdown");
+keyDropdown.onchange = () => {
+    if (keyDropdown.selectedIndex - 1 < 0) {
+        keyInput.value = "";
+        return
+    }
+    keyInput.value = keyDropdown.value;
+};
 
 const tableOutput = document.getElementById("table-output");
 
@@ -285,6 +297,7 @@ const sync = () => {
     // Arrange tied things alphabetically
     keyArray.sort();
 
+
     switch (totalsSortMode) {
         default:
             console.error("unhandled sort mode: " + i)
@@ -324,6 +337,27 @@ const sync = () => {
             // already in this order
         break
     }
+
+    //
+    // update rename stuff
+    //
+
+    keyDropdown.innerHTML = "";
+
+    const blankOption_ = document.createElement("option");
+    blankOption_.value = " ";
+    keyDropdown.appendChild(blankOption_);
+
+    for (key of keyArray) {
+        const option = document.createElement("option");
+        const label = key;
+        option.innerText = label;
+        keyDropdown.appendChild(option);
+    }
+
+    //
+    // output tables
+    //
 
     for (key of keyArray) {
         const dataRow = document.createElement("tr");
@@ -523,6 +557,27 @@ document.getElementById("remove-entry-button").onclick = () => {
     }
 
     entries.splice(i, 1)
+
+    sync()
+};
+
+const renameInput = document.getElementById("rename-input");
+
+document.getElementById("rename-button").onclick = () => {
+    // -1 for the blank at the start
+    if (keyDropdown.selectedIndex - 1 < 0) {
+        announceError("Nothing selected to rename")
+        return
+    }
+
+    const oldKey = keyDropdown.value;
+    const newKey = renameInput.value;
+
+    for (let i = 0; i < entries.length; i += 1) {
+        if (entries[i].key === oldKey) {
+            entries[i].key = newKey;
+        }
+    }
 
     sync()
 };
