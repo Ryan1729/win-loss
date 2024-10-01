@@ -179,6 +179,9 @@ const SORT_MODE_COUNT = 3;
 let totalsSortMode = SORT_MODE_HIGHEST_WIN_RATIO;
 let includeTiesBool = false;
 
+let entrySortAscendingBool = false;
+let entryGroupByKeyBool = false;
+
 const sync = () => {
     //
     // Update dropdown HTML
@@ -356,8 +359,67 @@ const sync = () => {
     }
 
     //
-    // output tables
+    // Output the tables
     //
+
+    //
+    // Totals table
+    //
+
+    const totalTableControls = document.createElement("div");
+    totalTableControls.style.marginTop = "2ex";
+
+    const sortModeDropdown = document.createElement("select");
+
+    for (let i = 0; i < SORT_MODE_COUNT; i += 1) {
+        const option = document.createElement("option");
+        switch (i) {
+            default:
+                console.error("unhandled sort mode: " + i)
+                continue
+            case SORT_MODE_HIGHEST_WIN_RATIO:
+                option.textContent = "Win ratio";
+            break
+            case SORT_MODE_MOST_WINS:
+                option.textContent = "Most Wins";
+            break
+            case SORT_MODE_ALPHABETICAL:
+                option.textContent = "Alphabetical";
+            break
+        }
+
+        sortModeDropdown.appendChild(option);
+    }
+    sortModeDropdown.selectedIndex = totalsSortMode;
+
+    sortModeDropdown.addEventListener("change", () => {
+        totalsSortMode = sortModeDropdown.selectedIndex;
+        sync()
+    });
+
+    totalTableControls.appendChild(sortModeDropdown);
+
+    const includeTiesID = "include-ties";
+
+    const includeTiesCheckbox = document.createElement("input");
+    includeTiesCheckbox.type = "checkbox";
+    includeTiesCheckbox.id = includeTiesID;
+    includeTiesCheckbox.checked = includeTiesBool;
+
+    includeTiesCheckbox.addEventListener("click", () => {
+        includeTiesBool = !includeTiesBool;
+        sync();
+    });
+
+    totalTableControls.appendChild(includeTiesCheckbox);
+
+    const includeTiesLabel = document.createElement("label");
+    includeTiesLabel.htmlFor = includeTiesID;
+    includeTiesLabel.textContent = "Include Ties";
+
+    totalTableControls.appendChild(includeTiesLabel);
+
+    tableOutput.appendChild(totalTableControls);
 
     for (key of keyArray) {
         const dataRow = document.createElement("tr");
@@ -401,59 +463,57 @@ const sync = () => {
 
     tableOutput.appendChild(totalTable);
 
-    const tableControls = document.createElement("div");
+    //
+    // Entries table
+    //
 
-    const sortModeDropdown = document.createElement("select");
+    (() => {
+        const entryTableControls = document.createElement("div");
+        entryTableControls.style.marginTop = "2ex";
 
-    for (let i = 0; i < SORT_MODE_COUNT; i += 1) {
-        const option = document.createElement("option");
-        switch (i) {
-            default:
-                console.error("unhandled sort mode: " + i)
-                continue
-            case SORT_MODE_HIGHEST_WIN_RATIO:
-                option.textContent = "Win ratio";
-            break
-            case SORT_MODE_MOST_WINS:
-                option.textContent = "Most Wins";
-            break
-            case SORT_MODE_ALPHABETICAL:
-                option.textContent = "Alphabetical";
-            break
-        }
+        const entrySortDirectionID = "entry-sort-direction";
 
-        sortModeDropdown.appendChild(option);
-    }
-    sortModeDropdown.selectedIndex = totalsSortMode;
+        const entrySortDirectionCheckbox = document.createElement("input");
+        entrySortDirectionCheckbox.type = "checkbox";
+        entrySortDirectionCheckbox.id = entrySortDirectionID;
+        entrySortDirectionCheckbox.checked = entrySortAscendingBool;
 
-    sortModeDropdown.addEventListener("change", () => {
-        totalsSortMode = sortModeDropdown.selectedIndex;
-        sync()
-    });
+        entrySortDirectionCheckbox.addEventListener("click", () => {
+            entrySortAscendingBool = !entrySortAscendingBool;
+            sync();
+        });
 
-    tableControls.appendChild(sortModeDropdown);
+        entryTableControls.appendChild(entrySortDirectionCheckbox);
 
-    const includeTiesID = "include-ties";
+        const entrySortDirectionLabel = document.createElement("label");
+        entrySortDirectionLabel.htmlFor = entrySortDirectionID;
+        entrySortDirectionLabel.textContent = "Sort Ascending";
 
-    const includeTiesCheckbox = document.createElement("input");
-    includeTiesCheckbox.type = "checkbox";
-    includeTiesCheckbox.id = includeTiesID;
-    includeTiesCheckbox.checked = includeTiesBool;
+        entryTableControls.appendChild(entrySortDirectionLabel);
 
-    includeTiesCheckbox.addEventListener("click", () => {
-        includeTiesBool = !includeTiesBool;
-        sync();
-    });
 
-    tableControls.appendChild(includeTiesCheckbox);
+        const entryGroupByKeyID = "entry-group-by-key";
 
-    const includeTiesLabel = document.createElement("label");
-    includeTiesLabel.htmlFor = includeTiesID;
-    includeTiesLabel.textContent = "Include Ties";
+        const entryGroupByKeyCheckbox = document.createElement("input");
+        entryGroupByKeyCheckbox.type = "checkbox";
+        entryGroupByKeyCheckbox.id = entryGroupByKeyID;
+        entryGroupByKeyCheckbox.checked = entryGroupByKeyBool;
 
-    tableControls.appendChild(includeTiesLabel);
+        entryGroupByKeyCheckbox.addEventListener("click", () => {
+            entryGroupByKeyBool = !entryGroupByKeyBool;
+            sync();
+        });
 
-    tableOutput.appendChild(tableControls);
+        entryTableControls.appendChild(entryGroupByKeyCheckbox);
+
+        const entryGroupByKeyLabel = document.createElement("label");
+        entryGroupByKeyLabel.htmlFor = entryGroupByKeyID;
+        entryGroupByKeyLabel.textContent = "Group By Key";
+
+        entryTableControls.appendChild(entryGroupByKeyLabel);
+
+        tableOutput.appendChild(entryTableControls);
+    })();
 
     (() => {
         const entryTable = document.createElement("table");
@@ -474,8 +534,23 @@ const sync = () => {
 
         entryTable.appendChild(headerRow);
 
-        for (let i = 0; i < entries.length; i += 1) {
-            let {key, outcome, date} = entries[i];
+        const sortedEntries = [...entries];
+
+        if (!entrySortAscendingBool) {
+            sortedEntries.reverse();
+        }
+
+        // Expected to already be sorted by date
+
+        if (entryGroupByKeyBool) {
+            // As of ECMAScript 2019, Array.prototype.sort is defined to be
+            // stable, according to MDN.
+
+            sortedEntries.sort((a, b) => a.key.localeCompare(b.key));
+        }
+
+        for (let i = 0; i < sortedEntries.length; i += 1) {
+            let {key, outcome, date} = sortedEntries[i];
             const dataRow = document.createElement("tr");
 
             const keyD = document.createElement("td");
@@ -494,7 +569,7 @@ const sync = () => {
         }
 
         tableOutput.appendChild(entryTable);
-    })()
+    })();
 
     //
     // Save to localStorage
