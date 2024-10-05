@@ -182,6 +182,17 @@ let includeTiesBool = false;
 let entrySortAscendingBool = false;
 let entryGroupByKeyBool = false;
 
+// -1 for the blank at the start, reversed because we reversed the entries when outputing
+const getSelectedIndex = () => {
+    const forwardIndex = entryDropdown.selectedIndex - 1
+    if (forwardIndex < 0) {
+        return forwardIndex
+    }
+
+    return (entries.length - 1) - forwardIndex;
+};
+
+
 const sync = () => {
     //
     // Update dropdown HTML
@@ -192,7 +203,8 @@ const sync = () => {
     blankOption.value = " ";
     entryDropdown.appendChild(blankOption);
 
-    for (let i = 0; i < entries.length; i += 1) {
+    // Reversed to put the newest date at the start
+    for (let i = entries.length - 1; i >= 0; i -= 1) {
         let {key, date, outcome} = entries[i];
         const option = document.createElement("option");
         const label = key + " " + outcome + " on " + dateToYYYYMMDD(new Date(date));
@@ -584,9 +596,6 @@ const sync = () => {
     window.localStorage.setItem(INDEX_KEY, index);
 }
 sync();
-
-// -1 for the blank at the start
-const getSelectedIndex = () => entryDropdown.selectedIndex - 1;
 
 entryDropdown.onchange = () => {
     const i = getSelectedIndex();
