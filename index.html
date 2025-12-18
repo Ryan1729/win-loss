@@ -131,6 +131,10 @@ const entries = loadEntriesOrDefault();
 
 const outcomeDropdown = document.getElementById("outcome");
 const keyInput = document.getElementById("key");
+keyInput.oninput = () => {
+    syncHighlighting();
+};
+
 const entryDropdown = document.getElementById("entry-dropdown");
 const entryDropdownOutput = document.getElementById("entry-dropdown-output");
 
@@ -159,9 +163,11 @@ const keyDropdown = document.getElementById("key-dropdown");
 keyDropdown.onchange = () => {
     if (keyDropdown.selectedIndex - 1 < 0) {
         keyInput.value = "";
+        syncHighlighting();
         return
     }
     keyInput.value = keyDropdown.value;
+    syncHighlighting();
 };
 
 const tableOutput = document.getElementById("table-output");
@@ -438,6 +444,13 @@ const sync = () => {
 
         const keyD = document.createElement("td");
         keyD.textContent = key;
+
+        // Highlighting
+        if (keyInput.value && keyInput.value === key) {
+            keyD.style["font-style"] = "italic";
+            keyD.style["color"] = "white";
+        }
+
         dataRow.appendChild(keyD);
 
         const {winTotal, lossTotal, tieTotal, total} = getTotals(key);
@@ -566,6 +579,13 @@ const sync = () => {
             const dataRow = document.createElement("tr");
 
             const keyD = document.createElement("td");
+
+            // Highlighting
+            if (keyInput.value && keyInput.value === key) {
+                keyD.style["font-style"] = "italic";
+                keyD.style["color"] = "white";
+            }
+
             keyD.textContent = key;
             dataRow.appendChild(keyD);
 
@@ -597,6 +617,10 @@ const sync = () => {
 }
 sync();
 
+// If this turns out to be a perf issue, we can write a specialized
+// function that only updates the nodes that need to be highlighted.
+const syncHighlighting = sync;
+
 entryDropdown.onchange = () => {
     const i = getSelectedIndex();
     if (i < 0) { return }
@@ -604,6 +628,7 @@ entryDropdown.onchange = () => {
     entryDropdownOutput.textContent = key + " " + outcome + " on " + dateToYYYYMMDD(new Date(date))
 
     keyInput.value = key;
+    syncHighlighting();
 };
 
 const addEntryButton = document.getElementById("add-entry-button");
