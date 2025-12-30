@@ -198,6 +198,11 @@ const getSelectedIndex = () => {
     return (entries.length - 1) - forwardIndex;
 };
 
+// -1 for the blank at the start, reversed because we reversed the entries when outputing
+// The output of getSelectedIndex on the same length of entries is suitiable to be passed in here
+const setSelectedIndex = (i) => {
+    entryDropdown.selectedIndex = (entries.length - 1) - i + 1
+}
 
 const sync = () => {
     //
@@ -622,13 +627,22 @@ sync();
 const syncHighlighting = sync;
 
 entryDropdown.onchange = () => {
-    const i = getSelectedIndex();
-    if (i < 0) { return }
-    let {date, outcome, key} = entries[i];
-    entryDropdownOutput.textContent = key + " " + outcome + " on " + dateToYYYYMMDD(new Date(date))
+    const entryDropDownIndex = getSelectedIndex();
 
-    keyInput.value = key;
+    if (entryDropDownIndex >= 0) {
+        let {date, outcome, key} = entries[entryDropDownIndex];
+
+        keyInput.value = key;
+    }
+
     syncHighlighting();
+
+    if (entryDropDownIndex >= 0) {
+        setSelectedIndex(entryDropDownIndex)
+
+        let {date, outcome, key} = entries[entryDropDownIndex];
+        entryDropdownOutput.textContent = key + " " + outcome + " on " + dateToYYYYMMDD(new Date(date))
+    }
 };
 
 const addEntryButton = document.getElementById("add-entry-button");
