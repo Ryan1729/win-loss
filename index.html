@@ -688,12 +688,12 @@ const renameInput = document.getElementById("rename-input");
 
 document.getElementById("rename-button").onclick = () => {
     // -1 for the blank at the start
-    if (keyDropdown.selectedIndex - 1 < 0) {
+    if (!keyInput.value) {
         announceError("Nothing selected to rename")
         return
     }
 
-    const oldKey = keyDropdown.value;
+    const oldKey = keyInput.value;
     const newKey = renameInput.value;
 
     for (let i = 0; i < entries.length; i += 1) {
@@ -701,6 +701,8 @@ document.getElementById("rename-button").onclick = () => {
             entries[i].key = newKey;
         }
     }
+
+    keyInput.value = newKey;
 
     sync()
 };
